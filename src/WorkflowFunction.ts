@@ -157,15 +157,15 @@ function createFunctionComplete(
   } = args;
   // const token = selectToken(context); // TODO : remove if not helpful for CLI
 
-  return (params: Parameters<FunctionCompleteFn>[0] = {}) => client.functions.completeSuccess({
+  // return (params: Parameters<FunctionCompleteFn>[0] = {}) => client.functions.completeSuccess({
+  // outputs: params.outputs,
+  // function_execution_id,
+  // });
+
+  return (params: Parameters<FunctionCompleteFn>[0] = {}) => client.apiCall('functions.completeSuccess', {
     outputs: params.outputs,
     function_execution_id,
   });
-
-  // return (params: Parameters<FunctionCompleteFn>[0] = {}) => client.apiCall('functions.completeSuccess', {
-  //   outputs: params.outputs,
-  //   function_execution_id,
-  // });
 }
 
 /**
@@ -185,15 +185,15 @@ function createFunctionFail(
   return (params: Parameters<FunctionFailFn>[0]) => {
     const { error } = params ?? {};
 
-    return client.functions.completeError({
+    // return client.functions.completeError({
+    // error,
+    // function_execution_id,
+    // });
+
+    return client.apiCall('functions.completeError', {
       error,
       function_execution_id,
     });
-
-    // return client.apiCall('functions.completeError', {
-    //   function_execution_id,
-    //   error,
-    // });
   };
 }
 
