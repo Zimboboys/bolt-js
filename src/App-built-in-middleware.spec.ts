@@ -159,7 +159,7 @@ describe('App built-in middleware and mechanism', () => {
       await fakeReceiver.sendEvent(dummyReceiverEvent);
 
       // Assert
-      assert.instanceOf(fakeErrorHandler.firstCall.args[0], Error);
+      assert.instanceOf(fakeErrorHandler.firstCall.args[0], Error); // TODO: type
     });
 
     it('correctly waits for async listeners', async () => {
@@ -210,13 +210,10 @@ describe('App built-in middleware and mechanism', () => {
        * @param orderDown The order it should be called when processing middleware down the chain
        * @param orderUp The order it should be called when processing middleware up the chain
        */
-      const assertOrderMiddleware = (orderDown: number, orderUp: number) => async ({ next }: { next?: NextFn }) => {
-        await delay(10);
+      const assertOrderMiddleware = (orderDown: number, orderUp: number) => async ({ next }: { next: NextFn }) => {
         middlewareCount += 1;
         assert.equal(middlewareCount, orderDown);
-        if (next !== undefined) {
-          await next();
-        }
+        await next();
         middlewareCount += 1;
         assert.equal(middlewareCount, orderUp);
       };

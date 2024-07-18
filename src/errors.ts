@@ -28,6 +28,8 @@ export enum ErrorCode {
   ReceiverAuthenticityError = 'slack_bolt_receiver_authenticity_error',
   ReceiverInconsistentStateError = 'slack_bolt_receiver_inconsistent_state_error',
 
+  MiddlewareNextError = 'slack_bolt_middleware_next_error',
+
   MultipleListenerError = 'slack_bolt_multiple_listener_error',
 
   HTTPReceiverDeferredRequestError = 'slack_bolt_http_receiver_deferred_request_error',
@@ -124,6 +126,10 @@ export class HTTPReceiverDeferredRequestError extends Error implements CodedErro
     this.req = req;
     this.res = res;
   }
+}
+
+export class MiddlewareNextError extends Error implements CodedError {
+  public code = ErrorCode.MiddlewareNextError;
 }
 
 export class MultipleListenerError extends Error implements CodedError {

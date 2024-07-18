@@ -165,8 +165,10 @@ export class WorkflowStep {
   private async processEvent(args: AllWorkflowStepMiddlewareArgs): Promise<void> {
     const { payload } = args;
     const stepArgs = prepareStepArgs(args);
-    const stepMiddleware = this.getStepMiddleware(payload);
-    return processStepMiddleware(stepArgs, stepMiddleware);
+    // TODO :: revisit type used below (look into contravariance)
+    const middleware = this.getStepMiddleware(payload) as Middleware<AnyMiddlewareArgs>[];
+    const { context, client, logger } = stepArgs;
+    return processMiddleware(middleware, stepArgs, context, client, logger, async () => { });
   }
 
   private getStepMiddleware(payload: AllWorkflowStepMiddlewareArgs['payload']): WorkflowStepMiddleware {

@@ -57,7 +57,7 @@ import {
 } from './types';
 import { IncomingEventType, getTypeAndConversation, assertNever, isBodyWithTypeEnterpriseInstall, isEventTypeToSkipAuthorize } from './helpers';
 import { CodedError, asCodedError, AppInitializationError, MultipleListenerError, ErrorCode, InvalidCustomPropertyError } from './errors';
-import { AllMiddlewareArgs, contextBuiltinKeys } from './types/middleware';
+import { contextBuiltinKeys } from './types/middleware';
 import { StringIndexed } from './types/helpers';
 // eslint-disable-next-line import/order
 import allSettled = require('promise.allsettled'); // eslint-disable-line @typescript-eslint/no-require-imports
@@ -1079,7 +1079,8 @@ export default class App<AppCustomContext extends StringIndexed = StringIndexed>
       }
     }
 
-    // Dispatch event through the global middleware chain
+    // Dispatch event through the global middleware chain then the provided
+    // listener middleware chain
     try {
       await processMiddleware(
         this.middleware,
@@ -1088,36 +1089,21 @@ export default class App<AppCustomContext extends StringIndexed = StringIndexed>
         client,
         this.logger,
         async () => {
-          // Dispatch the event through the listener middleware chains and aggregate their results
-          // TODO: change the name of this.middleware and this.listeners to help this make more sense
-          const listenerResults = this.listeners.map(async (origListenerMiddleware) => {
-            // Copy the array so modifications don't affect the original
-            const listenerMiddleware = [...origListenerMiddleware];
-
-            // Don't process the last item in the listenerMiddleware array - it shouldn't get a next fn
-            const listener = listenerMiddleware.pop();
-
-            if (listener === undefined) {
-              return undefined;
-            }
+          const listenerResults = this.listeners.map(async (listener) => {
+            // Process all listener middleware but give the last middleware a
+            // noop `next` function since processing is complete after that
+            const middleware = [...listener];
             return processMiddleware(
-              listenerMiddleware,
+              middleware,
               listenerArgs as AnyMiddlewareArgs,
               context,
               client,
               this.logger,
-              // When all the listener middleware are done processing,
-              // `listener` here will be called without a `next` execution
-              async () => listener({
-                ...(listenerArgs as AnyMiddlewareArgs),
-                context,
-                client,
-                logger: this.logger,
-                // `next` is already set in the outer processMiddleware
-              } as AnyMiddlewareArgs & AllMiddlewareArgs),
+              async () => { },
             );
           });
 
+          // Aggregate listener middleware results and adjust thrown errors
           const settledListenerResults = await allSettled(listenerResults);
           const rejectedListenerResults = settledListenerResults.filter(
             (lr) => lr.status === 'rejected',
