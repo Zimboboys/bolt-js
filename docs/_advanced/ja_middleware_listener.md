@@ -14,25 +14,28 @@ order: 6
 
 例として、リスナーが人（ボットではないユーザー）からのメッセージのみを扱うケースを考えてみましょう。このためには、全てのボットメッセージを除外するリスナーミドルウェアを実装します。
 
-*注: Bolt 2.x からミドルウェアが `async` 関数をサポートしました！この変更については [2.x マイグレーションガイド](https://slack.dev/bolt/ja-jp/tutorial/migration-v2)を参照してください。*
+_注: Bolt 2.x からミドルウェアが `async` 関数をサポートしました！この変更については [2.x マイグレーションガイド](https://slack.dev/bolt/ja-jp/tutorial/migration-v2)を参照してください。_
+
 </div>
 
 ```javascript
 // 'bot_message' サブタイプを持つメッセージをフィルタリングするリスナーミドルウェア
 async function noBotMessages({ message, next }) {
-  if (!message.subtype || message.subtype !== 'bot_message') {
+  if (!message.subtype || message.subtype !== "bot_message") {
     await next();
   }
 }
 
 // ボットではなく人間からのメッセージのみを受信するリスナー
-app.message(noBotMessages, async ({ message, logger }) => logger.info(
+app.message(noBotMessages, async ({ message, logger }) => {
   // 新規で投稿されたメッセージのみを処理
-  if (message.subtype === undefined
-    // || message.subtype === 'bot_message'
-    || message.subtype === 'file_share'
-    || message.subtype === 'thread_broadcast') {
-    logger.info(`(MSG) User: ${message.user} Message: ${message.text}`)
+  if (
+    message.subtype === undefined ||
+    // message.subtype !== 'bot_message'
+    message.subtype === "file_share" ||
+    message.subtype === "thread_broadcast"
+  ) {
+    logger.info(`(MSG) User: ${message.user} Message: ${message.text}`);
   }
-));
+});
 ```
